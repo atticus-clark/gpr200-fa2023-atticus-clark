@@ -43,7 +43,7 @@ ew::Camera camera;
 ew::CameraController cameraController;
 
 int main() {
-	printf("Initializing...");
+	printf("Initializing...\n");
 	if (!glfwInit()) {
 		printf("GLFW failed to init!");
 		return 1;
@@ -84,14 +84,25 @@ int main() {
 	ew::MeshData cubeMeshData = ew::createCube(0.5f);
 	ew::Mesh cubeMesh(cubeMeshData);
 
+	ew::Transform cubeTransform;
+	cubeTransform.position = ew::Vec3(-1.5, 0.0, 0.0);
+
 	// create plane
 	ew::MeshData planeMeshData = akcGPR::createPlane(1.0, 2.0, 5);
 	ew::Mesh planeMesh(planeMeshData);
-	ew::Transform planeTransform;
-	planeTransform.position = ew::Vec3(-2.0, -1.0, 0.0);
 
-	//Initialize transforms
-	ew::Transform cubeTransform;
+	ew::Transform planeTransform;
+	planeTransform.position = ew::Vec3(-1.0, -1.0, 0.0);
+
+	// create cylinder
+	ew::MeshData cylinderMeshData = akcGPR::createCylinder(2.0, 0.5, 15);
+	ew::Mesh cylinderMesh(cylinderMeshData);
+
+	ew::Transform cylinderTransform;
+	cylinderTransform.position = ew::Vec3(1.0, 0.0, 0.0);
+
+	// create sphere
+	// TODO
 
 	resetCamera(camera,cameraController);
 
@@ -130,6 +141,13 @@ int main() {
 		// draw plane
 		shader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
+
+		// draw cylinder
+		shader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		cylinderMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
+
+		// draw sphere
+		// TODO
 
 		//Render UI
 		{
