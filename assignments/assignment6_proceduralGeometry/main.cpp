@@ -85,24 +85,28 @@ int main() {
 	ew::Mesh cubeMesh(cubeMeshData);
 
 	ew::Transform cubeTransform;
-	cubeTransform.position = ew::Vec3(-1.5, 0.0, 0.0);
+	cubeTransform.position = ew::Vec3(-2.0, 0.0, 0.0);
 
 	// create plane
 	ew::MeshData planeMeshData = akcGPR::createPlane(1.0, 2.0, 5);
 	ew::Mesh planeMesh(planeMeshData);
 
 	ew::Transform planeTransform;
-	planeTransform.position = ew::Vec3(-1.0, -1.0, 0.0);
+	planeTransform.position = ew::Vec3(-1.5, -0.5, 1.0);
 
 	// create cylinder
 	ew::MeshData cylinderMeshData = akcGPR::createCylinder(2.0, 0.5, 15);
 	ew::Mesh cylinderMesh(cylinderMeshData);
 
 	ew::Transform cylinderTransform;
-	cylinderTransform.position = ew::Vec3(1.0, 0.0, 0.0);
+	cylinderTransform.position = ew::Vec3(0.25, 0.0, 0.0);
 
 	// create sphere
-	// TODO
+	ew::MeshData sphereMeshData = akcGPR::createSphere(0.5, 15);
+	ew::Mesh sphereMesh(sphereMeshData);
+
+	ew::Transform sphereTransform;
+	sphereTransform.position = ew::Vec3(1.5, 0.0, 0.0);
 
 	resetCamera(camera,cameraController);
 
@@ -147,7 +151,8 @@ int main() {
 		cylinderMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
 
 		// draw sphere
-		// TODO
+		shader.setMat4("_Model", sphereTransform.getModelMatrix());
+		sphereMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
 
 		//Render UI
 		{

@@ -5,6 +5,90 @@ namespace akcGPR {
 	ew::MeshData createSphere(float radius, int numSegments)
 	{
 		ew::MeshData mData;
+		ew::Vertex v;
+
+		const float thetaStep = (2 * ew::PI) / numSegments;
+		const float phiStep = ew::PI / numSegments;
+
+		// vertices -------------------------
+		for(int row = 0; row <= numSegments; row++)
+		{
+			float phi = row * phiStep;
+
+			for(int col = 0; col <= numSegments; col++)
+			{
+				float theta = col * thetaStep;
+
+				v.pos.x = radius * cos(theta) * sin(phi);
+				v.pos.y = radius * cos(phi);
+				v.pos.z = radius * sin(theta) * sin(phi);
+
+				mData.vertices.push_back(v);
+			}
+		}
+
+		// indices -------------------------
+		const int poleStart = 0;
+		const int columns = numSegments + 1;
+
+		// top cap
+		for(int i = 0; i < numSegments; i++)
+		{
+			mData.indices.push_back(columns + i);
+			mData.indices.push_back(poleStart + i);
+			mData.indices.push_back(columns + i + 1);
+		}
+
+		// rows
+		for(int row = 1; row < numSegments; row++)
+		{
+			for(int col = 0; col < numSegments; col++)
+			{
+				int start = columns * row + col;
+
+				// triangle 1
+				mData.indices.push_back(start);
+				mData.indices.push_back(start + 1);
+				mData.indices.push_back(start + columns);
+
+				// triangle 2
+				mData.indices.push_back(start + 1);
+				mData.indices.push_back(start + columns + 1);
+				mData.indices.push_back(start + columns);
+			}
+		}
+
+		// bottom cap
+		for(int i = 0; i < numSegments; i++)
+		{
+			int element = i + mData.vertices.size() - (numSegments * 2);
+
+			mData.indices.push_back(columns + element + 1);
+			mData.indices.push_back(poleStart + element);
+			mData.indices.push_back(columns + element);
+		}
+
+		// normals -------------------------
+		for(int i = 0; i < mData.vertices.size(); i++)
+		{
+			// for spheres, normal is just normalized position of point
+			mData.vertices[i].normal = ew::Normalize(mData.vertices[i].pos);
+		}
+
+		// UVs -------------------------
+		float uvStep = 1.0f / numSegments; // percentage of plane that each row/column occupies
+		for(int row = 0; row <= numSegments; row++)
+		{
+			for(int col = 0; col <= numSegments; col++)
+			{
+				// calculate element number of each vertex
+				int element = row * (numSegments + 1) + col;
+
+				// row/column number * uvStep == uv position of vertex
+				mData.vertices[element].uv.x = col * uvStep;
+				mData.vertices[element].uv.y = row * uvStep;
+			}
+		}
 
 		return mData;
 	}
@@ -59,6 +143,7 @@ namespace akcGPR {
 
 		// top ring and bottom ring pt2 - need duplicate vertices for normals
 		const int verticesOriginalSize = mData.vertices.size();
+
 		for(int i = 1; i <= verticesOriginalSize - 2; i++)
 		{
 			v.pos.x = mData.vertices[i].pos.x;
