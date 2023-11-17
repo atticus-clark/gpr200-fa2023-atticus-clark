@@ -16,6 +16,7 @@ struct Light {
 };
 #define MAX_LIGHTS 4
 uniform Light _Lights[MAX_LIGHTS];
+uniform int _ActiveLights;
 
 struct Material {
 	float ambientK;
@@ -30,9 +31,6 @@ void main(){
     vec4 color = texture(_Texture, fs_in.UV);
 
 	vec3 lightColor;
-
-	// ambient
-	color = color + _Material.ambientK;
 
 	for(int i = 0; i < MAX_LIGHTS; i++)
 	{
@@ -51,6 +49,7 @@ void main(){
 		// add together
 		lightColor += (diffuseCol + specularCol);
 	}
+	lightColor += _Material.ambientK;
 
     FragColor = color * vec4(lightColor, 1.0);
 }

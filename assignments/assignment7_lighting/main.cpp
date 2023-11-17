@@ -111,10 +111,10 @@ int main() {
 
 	// create material
 	Material material;
-	material.ambientK = 0.0f;
-	material.diffuseK = 0.0f;
-	material.specularK = 1.0f;
-	material.shininess = 10.0f;
+	material.ambientK = 0.5f;
+	material.diffuseK = 0.5f;
+	material.specularK = 0.5f;
+	material.shininess = 20.0f;
 
 	resetCamera(camera,cameraController);
 
@@ -143,17 +143,26 @@ int main() {
 		shader.setFloat("_Material.specularK", material.specularK);
 		shader.setFloat("_Material.shininess", material.shininess);
 		shader.setVec3("_CamPos", camera.position);
+		shader.setInt("_ActiveLights", activeLights);
 
 		// update light positions and colors
-		for(int i = 0; i < activeLights; i++)
+		for(int i = 0; i < MAX_LIGHTS; i++)
 		{
 			std::string lightsPosString = "_Lights[" + std::to_string(i);
 			lightsPosString = lightsPosString + "].position";
 			std::string lightsColString = "_Lights[" + std::to_string(i);
 			lightsColString = lightsColString + "].color";
 
-			shader.setVec3(lightsPosString, lights[i].position);
-			shader.setVec3(lightsColString, lights[i].color);
+			if(i < activeLights)
+			{
+				shader.setVec3(lightsPosString, lights[i].position);
+				shader.setVec3(lightsColString, lights[i].color);
+			}
+			else
+			{
+				shader.setVec3(lightsPosString, ew::Vec3(0.0));
+				shader.setVec3(lightsColString, ew::Vec3(0.0));
+			}
 		}
 
 		//Draw shapes
@@ -192,6 +201,10 @@ int main() {
 			ImGui::NewFrame();
 
 			ImGui::Begin("Settings");
+
+			ImGui::ColorEdit3("BG color", &bgColor.x);
+			ImGui::DragInt("Active Lights", &activeLights, 0.1f, 0, MAX_LIGHTS);
+
 			if (ImGui::CollapsingHeader("Camera")) {
 				ImGui::DragFloat3("Position", &camera.position.x, 0.1f);
 				ImGui::DragFloat3("Target", &camera.target.x, 0.1f);
@@ -211,7 +224,26 @@ int main() {
 				}
 			}
 
-			ImGui::ColorEdit3("BG color", &bgColor.x);
+			if(ImGui::CollapsingHeader("Material Properties"))
+			{
+				ImGui::DragFloat("ambientK", &material.ambientK, 0.01f, 0.0f, 1.0f);
+				ImGui::DragFloat("diffuseK", &material.diffuseK, 0.01f, 0.0f, 1.0f);
+				ImGui::DragFloat("specularK", &material.specularK, 0.01f, 0.0f, 1.0f);
+				ImGui::DragFloat("shininess", &material.shininess, 0.1f, 2.0f, 64.0f);
+			}
+
+			// light controls
+			for(int i = 0; i < activeLights; i++)
+			{
+				ImGui::PushID(i);
+				if(ImGui::CollapsingHeader("Light"))
+				{
+					ImGui::DragFloat3("Position", &lights[i].position.x, 0.1f);
+					ImGui::ColorEdit3("Color", &lights[i].color.x);
+				}
+				ImGui::PopID();
+			}
+
 			ImGui::End();
 			
 			ImGui::Render();
