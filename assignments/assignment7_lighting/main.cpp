@@ -15,6 +15,8 @@
 #include <ew/camera.h>
 #include <ew/cameraController.h>
 
+#include <iostream> // for testing
+
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void resetCamera(ew::Camera& camera, ew::CameraController& cameraController);
 
@@ -26,6 +28,18 @@ ew::Vec3 bgColor = ew::Vec3(0.1f);
 
 ew::Camera camera;
 ew::CameraController cameraController;
+
+struct Light {
+	ew::Vec3 position; // in world space
+	ew::Vec3 color; // RGB
+};
+
+struct Material {
+	float ambientK; // Ambient coefficient (0-1)
+	float diffuseK; // Diffuse coefficient (0-1)
+	float specularK; // Specular coefficient (0-1)
+	float shininess; // Shininess (>2, at least for this assignment)
+};
 
 int main() {
 	printf("Initializing...");
@@ -76,6 +90,32 @@ int main() {
 	sphereTransform.position = ew::Vec3(-1.5f, 0.0f, 0.0f);
 	cylinderTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
 
+	// create lights
+	const int MAX_LIGHTS = 4; // make sure this is the same in frag shader as well
+	int activeLights = 4;
+	Light lights[MAX_LIGHTS];
+
+	// default values for lights
+	lights[0].position = ew::Vec3(2.0f, 2.0f, 2.0f);
+	lights[0].color = ew::Vec3(1.0f, 0.0f, 0.0f);
+	lights[1].position = ew::Vec3(-2.0f, 2.0f, 2.0f);
+	lights[1].color = ew::Vec3(0.0f, 1.0f, 0.0f);
+	lights[2].position = ew::Vec3(-2.0f, 2.0f, -2.0f);
+	lights[2].color = ew::Vec3(0.0f, 0.0f, 1.0f);
+	lights[3].position = ew::Vec3(2.0f, 2.0f, -2.0f);
+	lights[3].color = ew::Vec3(1.0f, 1.0f, 0.0f);
+
+	ew::Shader unlitShader("assets/unlit.vert", "assets/unlit.frag");
+	ew::Mesh lightSphereMesh(ew::createSphere(0.25f, 16));
+	ew::Transform lightSphereTransform;
+
+	// create material
+	Material material;
+	material.ambientK = 0.0f;
+	material.diffuseK = 0.0f;
+	material.specularK = 1.0f;
+	material.shininess = 10.0f;
+
 	resetCamera(camera,cameraController);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -98,6 +138,24 @@ int main() {
 		shader.setInt("_Texture", 0);
 		shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
 
+		shader.setFloat("_Material.ambientK", material.ambientK);
+		shader.setFloat("_Material.diffuseK", material.diffuseK);
+		shader.setFloat("_Material.specularK", material.specularK);
+		shader.setFloat("_Material.shininess", material.shininess);
+		shader.setVec3("_CamPos", camera.position);
+
+		// update light positions and colors
+		for(int i = 0; i < activeLights; i++)
+		{
+			std::string lightsPosString = "_Lights[" + std::to_string(i);
+			lightsPosString = lightsPosString + "].position";
+			std::string lightsColString = "_Lights[" + std::to_string(i);
+			lightsColString = lightsColString + "].color";
+
+			shader.setVec3(lightsPosString, lights[i].position);
+			shader.setVec3(lightsColString, lights[i].color);
+		}
+
 		//Draw shapes
 		shader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();
@@ -111,7 +169,21 @@ int main() {
 		shader.setMat4("_Model", cylinderTransform.getModelMatrix());
 		cylinderMesh.draw();
 
-		//TODO: Render point lights
+		// Render point lights
+		unlitShader.use();
+		unlitShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+		for(int i = 0; i < activeLights; i++)
+		{
+			std::string lightsPosString = "_Lights[" + i;
+			lightsPosString = lightsPosString + "].position";
+			std::string lightsColString = "_Lights[" + i;
+			lightsColString = lightsColString + "].color";
+
+			lightSphereTransform.position = lights[i].position;
+			unlitShader.setMat4("_Model", lightSphereTransform.getModelMatrix());
+			unlitShader.setVec3("_Color", lights[i].color);
+			lightSphereMesh.draw();
+		}
 
 		//Render UI
 		{
