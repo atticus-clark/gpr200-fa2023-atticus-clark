@@ -21,6 +21,7 @@ void main(){
 
 	// converts vertex normal to world space
 	vs_out.worldNormal = transpose(inverse(mat3(_Model))) * vNormal;
+	// mat3(transpose(inverse(_Model))) also gives correct normal matrix
 
 	gl_Position = _ViewProjection * _Model * vec4(vPos,1.0);
 }

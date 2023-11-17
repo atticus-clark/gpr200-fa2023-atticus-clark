@@ -16,7 +16,6 @@ struct Light {
 };
 #define MAX_LIGHTS 4
 uniform Light _Lights[MAX_LIGHTS];
-uniform int _ActiveLights;
 
 struct Material {
 	float ambientK;
@@ -30,7 +29,7 @@ void main(){
     vec3 normal = normalize(fs_in.worldNormal);
     vec4 color = texture(_Texture, fs_in.UV);
 
-	vec3 lightColor;
+	vec3 lightColor = vec3(0.0);
 
 	for(int i = 0; i < MAX_LIGHTS; i++)
 	{

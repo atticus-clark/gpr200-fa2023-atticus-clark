@@ -143,7 +143,6 @@ int main() {
 		shader.setFloat("_Material.specularK", material.specularK);
 		shader.setFloat("_Material.shininess", material.shininess);
 		shader.setVec3("_CamPos", camera.position);
-		shader.setInt("_ActiveLights", activeLights);
 
 		// update light positions and colors
 		for(int i = 0; i < MAX_LIGHTS; i++)
@@ -160,11 +159,10 @@ int main() {
 			}
 			else
 			{
-				shader.setVec3(lightsPosString, ew::Vec3(0.0));
-				shader.setVec3(lightsColString, ew::Vec3(0.0));
+				shader.setVec3(lightsColString, ew::Vec3(0.0f));
 			}
 		}
-
+		
 		//Draw shapes
 		shader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();
